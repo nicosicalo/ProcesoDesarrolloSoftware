@@ -8,10 +8,7 @@ import ScrimsAuth.SessionManager;
 import java.util.Optional;
 import java.util.Scanner;
 
-/**
- * Controla el flujo de registro, login y verificación.
- * Esta clase simula un endpoint HTTP que recibe peticiones del usuario.
- */
+
 public class AuthController {
     private final Scanner sc;
     private final AuthService authService;

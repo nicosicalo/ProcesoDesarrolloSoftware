@@ -1,7 +1,7 @@
 package Models;
 
 public class ClassicUser extends Usuario {
-    private String passwordHash; // PBKDF2 hashed
+    private String passwordHash;
 
     public ClassicUser() {}
 

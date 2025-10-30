@@ -1,18 +1,17 @@
 package Service;
 
-import Enums.Rango;
-import Enums.Region;
-import Enums.Rol;
-import Infraestructura.UsuarioRepository;
+import Models.GameProfile;
 import Models.Usuario;
+import Enums.Region;
+
+import Infraestructura.UsuarioRepository;
+import java.util.Optional;
+import java.util.Set;
 
 import java.util.Optional;
 import java.util.Set;
 
-/**
- * Servicio encargado de gestionar las operaciones relacionadas con el Perfil de un Usuario,
- * como la edición de sus preferencias de juego.
- */
+
 public class ProfileService {
     private final UsuarioRepository repo;
 
@@ -21,45 +20,90 @@ public class ProfileService {
     }
 
     /**
-     * Actualiza la información del perfil del usuario.
-     * @param userId El ID único del usuario a actualizar.
-     * @param juegoPrincipal El juego que el usuario juega más.
-     * @param rangoPorJuego El rango actual del usuario en ese juego.
-     * @param rolesPreferidos El conjunto de roles que prefiere jugar.
-     * @param region La región o servidor principal.
-     * @param disponibilidadHoraria Franja horaria para jugar (e.g., "18:00-22:00").
-     * @return El Usuario actualizado o Optional.empty() si no se encuentra.
+     * Actualiza la información general del perfil del usuario (no específica del juego).
+     * @param userId El ID del usuario.
+     * @param region La región/servidor general.
+     * @param disponibilidadHoraria La franja horaria.
+     * @return El Usuario actualizado.
      */
-    public Optional<Usuario> updateProfile(
+    public Optional<Usuario> updateGeneralProfile(
             String userId,
-            String juegoPrincipal,
-            Rango rangoPorJuego,
-            Set<Rol> rolesPreferidos,
             Region region,
             String disponibilidadHoraria
     ) {
-        // En un caso real, buscaríamos por ID, pero el repo actual solo tiene findByEmail/Username.
-        // Simularemos la búsqueda por un ID o Asumiremos que el repo tendrá un findById
-        Optional<Usuario> optionalUser = repo.findByAnyId(userId); // Imaginamos que el repo tiene este método
-
+        Optional<Usuario> optionalUser = repo.findByAnyId(userId);
         if (optionalUser.isEmpty()) {
-            // Usuario no encontrado (o sesión inválida)
+            return Optional.empty();
+        }
+
+        Usuario user = optionalUser.get();
+        user.getPerfil().setRegion(region);
+        user.getPerfil().setDisponibilidadHoraria(disponibilidadHoraria);
+
+        repo.save(user);
+        return Optional.of(user);
+    }
+
+    /**
+     * Crea o actualiza el perfil de un juego específico (rango y roles).
+     * @param userId El ID del usuario.
+     * @param juegoId El ID del juego (ej: "valorant", "lol").
+     * @param rango El rango (como String, ej: "RADIANT").
+     * @param roles Los roles (como Set<String>, ej: ["DUELISTA", "SUPPORT"]).
+     * @return El Usuario actualizado.
+     */
+    public Optional<Usuario> updateGameProfile(
+            String userId,
+            String juegoId,
+            String rango,
+            Set<String> roles
+    ) {
+        Optional<Usuario> optionalUser = repo.findByAnyId(userId);
+        if (optionalUser.isEmpty()) {
             return Optional.empty();
         }
 
         Usuario user = optionalUser.get();
 
-        // Aplicar las actualizaciones al perfil
-        user.getPerfil().setJuegoPrincipal(juegoPrincipal);
-        user.getPerfil().setRangoPorJuego(rangoPorJuego);
-        user.getPerfil().setRolesPreferidos(rolesPreferidos);
-        user.getPerfil().setRegion(region);
-        user.getPerfil().setDisponibilidadHoraria(disponibilidadHoraria);
 
-        // Guardar el cambio de vuelta al repositorio (si el repositorio usa Mapas, el objeto ya está en memoria,
-        // pero en una BDD real se requeriría una operación de save/update).
+        GameProfile gameProfile = user.getPerfil().getPerfilPorJuego(juegoId);
+        if (gameProfile == null) {
+            gameProfile = new GameProfile();
+        }
+
+
+        gameProfile.setRango(rango);
+        gameProfile.setRoles(roles);
+
+
+        user.getPerfil().getPerfilesDeJuego().put(juegoId, gameProfile);
+
         repo.save(user);
+        return Optional.of(user);
+    }
 
+    /**
+     * Establece el juego principal del usuario.
+     * @param userId El ID del usuario.
+     * @param juegoId El ID del juego a marcar como principal.
+     * @return El Usuario actualizado, o Optional.empty() si el usuario no tiene
+     * configurado ese perfil de juego.
+     */
+    public Optional<Usuario> setJuegoPrincipal(String userId, String juegoId) {
+        Optional<Usuario> optionalUser = repo.findByAnyId(userId);
+        if (optionalUser.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Usuario user = optionalUser.get();
+
+
+        if (!user.getPerfil().getPerfilesDeJuego().containsKey(juegoId)) {
+            return Optional.empty();
+        }
+
+        user.getPerfil().setJuegoPrincipalId(juegoId);
+        repo.save(user);
         return Optional.of(user);
     }
 }

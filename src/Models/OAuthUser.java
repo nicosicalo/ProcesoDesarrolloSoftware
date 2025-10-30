@@ -1,7 +1,7 @@
 package Models;
 
 public class OAuthUser extends Usuario {
-    private String provider; // e.g. "STEAM", "DISCORD"
+    private String provider;
 
     public OAuthUser(String provider) { this.provider = provider; }
 

@@ -1,31 +1,32 @@
 package Models;
 
-import Enums.Rango;
-import Enums.Region;
-import Enums.Rol;
-
-import java.util.HashSet;
+import Enums.Region; // La región puede seguir siendo global
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.HashMap;
 
 public class Perfil {
-    private String juegoPrincipal;
-    private Rango rangoPorJuego;
-    private Set<Rol> rolesPreferidos = new HashSet<>();
+
+    // El ID del juego (ej: "valorant") que el usuario prefiere
+    private String juegoPrincipalId;
+
+    // El mapa que contiene TODOS los perfiles del usuario
+    // La clave (String) es el ID del juego ("valorant", "lol", etc.)
+    private Map<String, GameProfile> perfilesDeJuego = new HashMap<>();
+
+    // Estos son atributos generales del usuario, no dependen del juego
     private Region region;
-    private String disponibilidadHoraria; // p.ej "18:00-22:00"
+    private String disponibilidadHoraria;
 
     public Perfil() { }
 
-    // getters y setters
-    public String getJuegoPrincipal() { return juegoPrincipal; }
-    public void setJuegoPrincipal(String juegoPrincipal) { this.juegoPrincipal = juegoPrincipal; }
+    // --- Getters y Setters ---
 
-    public Rango getRangoPorJuego() { return rangoPorJuego; }
-    public void setRangoPorJuego(Rango rangoPorJuego) { this.rangoPorJuego = rangoPorJuego; }
+    public String getJuegoPrincipalId() { return juegoPrincipalId; }
+    public void setJuegoPrincipalId(String juegoPrincipalId) { this.juegoPrincipalId = juegoPrincipalId; }
 
-    public Set<Rol> getRolesPreferidos() { return rolesPreferidos; }
-    public void setRolesPreferidos(Set<Rol> rolesPreferidos) { this.rolesPreferidos = rolesPreferidos; }
+    public Map<String, GameProfile> getPerfilesDeJuego() { return perfilesDeJuego; }
+    public void setPerfilesDeJuego(Map<String, GameProfile> perfilesDeJuego) { this.perfilesDeJuego = perfilesDeJuego; }
 
     public Region getRegion() { return region; }
     public void setRegion(Region region) { this.region = region; }
@@ -33,31 +34,54 @@ public class Perfil {
     public String getDisponibilidadHoraria() { return disponibilidadHoraria; }
     public void setDisponibilidadHoraria(String disponibilidadHoraria) { this.disponibilidadHoraria = disponibilidadHoraria; }
 
+    // --- Métodos de Conveniencia ---
+
+    /**
+     * Obtiene el GameProfile del juego marcado como principal.
+     * @return El GameProfile principal, o null si no hay juego principal seteado.
+     */
+    public GameProfile getPerfilPrincipal() {
+        if (juegoPrincipalId == null) return null;
+        return perfilesDeJuego.get(juegoPrincipalId);
+    }
+
+    /**
+
+     * @param juegoId El ID del juego (ej: "lol")
+     * @return El GameProfile para ese juego, o null si el usuario no tiene datos cargados.
+     */
+    public GameProfile getPerfilPorJuego(String juegoId) {
+        return perfilesDeJuego.get(juegoId);
+    }
+
     @Override
     public String toString() {
         return "Perfil{" +
-                "juegoPrincipal='" + juegoPrincipal + '\'' +
-                ", rangoPorJuego=" + rangoPorJuego +
-                ", rolesPreferidos=" + rolesPreferidos +
+                "juegoPrincipalId='" + juegoPrincipalId + '\'' +
                 ", region=" + region +
                 ", disponibilidadHoraria='" + disponibilidadHoraria + '\'' +
+                ", perfilesDeJuego=" + perfilesDeJuego +
                 '}';
     }
 
-    @Override //aca verificamos cuando 2 perfiles son iguales en contenido pero  que son distintos(por el tema de la memoria simulada)
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Perfil)) return false;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
         Perfil perfil = (Perfil) o;
-        return Objects.equals(juegoPrincipal, perfil.juegoPrincipal) &&
-                rangoPorJuego == perfil.rangoPorJuego &&
-                Objects.equals(rolesPreferidos, perfil.rolesPreferidos) &&
-                region == perfil.region &&
+
+
+        return Objects.equals(juegoPrincipalId, perfil.juegoPrincipalId) &&
+                Objects.equals(perfilesDeJuego, perfil.perfilesDeJuego) &&
+                region == perfil.region && // '==' está bien para Enums
                 Objects.equals(disponibilidadHoraria, perfil.disponibilidadHoraria);
     }
 
-    @Override //hashea los onjetos para hacer los mapeos en el hashSet
+    @Override
     public int hashCode() {
-        return Objects.hash(juegoPrincipal, rangoPorJuego, rolesPreferidos, region, disponibilidadHoraria);
+
+        return Objects.hash(juegoPrincipalId, perfilesDeJuego, region, disponibilidadHoraria);
     }
 }

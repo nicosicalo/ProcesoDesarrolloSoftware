@@ -13,7 +13,7 @@ public class EmailService {
     public String sendVerificationEmail(String email) {
         String token = UUID.randomUUID().toString();
         tokens.put(token, email.toLowerCase());
-        // en app real: enviar email con link que contiene token
+
         System.out.println("[EmailService] Simulando envío de verificación a " + email + " - token: " + token);
         return token;
     }
