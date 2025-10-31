@@ -29,7 +29,7 @@ public class UsuarioRepository {
         return Optional.ofNullable(byUsername.get(username.toLowerCase()));
     }
 
-    // Nuevo método para que ProfileService y SessionManager puedan buscar por el ID
+
     public Optional<Usuario> findByAnyId(String id) {
         if (id == null) return Optional.empty();
         return Optional.ofNullable(byId.get(id));

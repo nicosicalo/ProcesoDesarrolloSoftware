@@ -84,6 +84,6 @@ public class Main {
                 default: System.out.println("Opción inválida"); break;
             }
         }
-        System.out.println("👋 ¡Hasta pronto!");
+        System.out.println("Gracias por jugar con nosotros");
     }
 }

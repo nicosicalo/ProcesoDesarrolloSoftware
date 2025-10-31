@@ -37,7 +37,7 @@ public class AuthController {
                 System.out.println("❌ Fallo en registro: El email o username ya existe.");
             }
         } finally {
-            // Limpiar la contraseña del array de caracteres por seguridad
+
             java.util.Arrays.fill(p, ' ');
         }
     }

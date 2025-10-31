@@ -64,7 +64,7 @@ public class ProfileController {
      * Edita los campos generales del perfil.
      */
     private void editarPerfilGeneral(Usuario user) {
-        // Manejo de Región con validación
+
         Region reg = null;
         while (reg == null) {
             try {
@@ -84,7 +84,7 @@ public class ProfileController {
 
 
     private void editarPerfilDeJuego(Usuario user) {
-        // 1. Elegir el juego
+
         Juego juegoSeleccionado = elegirJuego();
         if (juegoSeleccionado == null) return;
 
@@ -125,14 +125,14 @@ public class ProfileController {
                 } else {
                     System.out.println("❌ Rol '" + rolTrimmed + "' es inválido.");
                     allValid = false;
-                    roles.clear(); // Limpiar y pedir de nuevo
+                    roles.clear();
                     break;
                 }
             }
             if (!allValid) System.out.println("Por favor, reingresa todos tus roles.");
         }
 
-        // 4. Llamar al servicio
+
         profileService.updateGameProfile(user.getId(), juegoId, rango, roles);
         System.out.println("✅ Perfil de " + juegoSeleccionado.getNombre() + " actualizado.");
     }
@@ -216,7 +216,7 @@ public class ProfileController {
 
             if (input.equals("0")) return null;
 
-            // Buscar por ID ("valorant") o por número (1)
+
             Optional<Juego> juegoOpt = juegoRepository.findByStringId(input);
 
             if (juegoOpt.isEmpty()) {

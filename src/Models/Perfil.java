@@ -7,11 +7,10 @@ import java.util.HashMap;
 
 public class Perfil {
 
-    // El ID del juego (ej: "valorant") que el usuario prefiere
+
     private String juegoPrincipalId;
 
-    // El mapa que contiene TODOS los perfiles del usuario
-    // La clave (String) es el ID del juego ("valorant", "lol", etc.)
+
     private Map<String, GameProfile> perfilesDeJuego = new HashMap<>();
 
     // Estos son atributos generales del usuario, no dependen del juego
@@ -20,7 +19,7 @@ public class Perfil {
 
     public Perfil() { }
 
-    // --- Getters y Setters ---
+
 
     public String getJuegoPrincipalId() { return juegoPrincipalId; }
     public void setJuegoPrincipalId(String juegoPrincipalId) { this.juegoPrincipalId = juegoPrincipalId; }
@@ -34,7 +33,7 @@ public class Perfil {
     public String getDisponibilidadHoraria() { return disponibilidadHoraria; }
     public void setDisponibilidadHoraria(String disponibilidadHoraria) { this.disponibilidadHoraria = disponibilidadHoraria; }
 
-    // --- Métodos de Conveniencia ---
+
 
     /**
      * Obtiene el GameProfile del juego marcado como principal.
