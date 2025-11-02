@@ -88,7 +88,7 @@ public class ProfileController {
         Juego juegoSeleccionado = elegirJuego();
         if (juegoSeleccionado == null) return;
 
-        String juegoId = juegoSeleccionado.getId();
+        String juegoId = juegoSeleccionado.getNombre();
         JuegoFactory factory = juegoSeleccionado.getJuegoFactory();
 
 

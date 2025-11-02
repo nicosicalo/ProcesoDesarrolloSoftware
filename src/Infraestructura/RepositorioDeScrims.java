@@ -6,6 +6,7 @@ import Service.FiltrosBusqueda;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -35,5 +36,19 @@ public class RepositorioDeScrims {
 
     public List<Scrim> findAll() {
         return byId.values().stream().toList();
+    }
+    public List<Scrim> findByIds(Set<UUID> ids) {
+        return ids.stream()
+                // 1. Mapea cada ID al objeto Scrim que tiene en el Map interno
+                .map(byId::get) 
+                // 2. Filtra IDs que no existen (devuelven null)
+                .filter(scrim -> scrim != null) 
+                // 3. Recolecta los resultados en una lista
+                .collect(Collectors.toList());
+    }
+    public List<Scrim> findByOrganizadorId(UUID organizadorId) {
+        return byId.values().stream()
+                .filter(s -> s.getOrganizadorId().equals(organizadorId))
+                .collect(Collectors.toList());
     }
 }

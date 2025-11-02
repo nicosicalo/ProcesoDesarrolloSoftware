@@ -6,8 +6,8 @@ public class Postulacion {
     private final UUID id = UUID.randomUUID();
     private UUID usuarioId;
     private UUID scrimId;
-    private String rolDeseado; // Usaremos String (Enum Rol)
-    private String estado; // "Pendiente", "Aceptada", "Rechazada"
+    private String rolDeseado; 
+    private String estado; 
 
     public Postulacion(UUID usuarioId, UUID scrimId, String rolDeseado) {
         this.usuarioId = usuarioId;
