@@ -12,7 +12,12 @@ import Infraestructura.JuegoRepository;
 import Infraestructura.UsuarioRepository;
 import Models.Juego;
 import java.util.Scanner;
-
+// *** Nuevas Importaciones para Integrante 2 ***
+import Domain.Events.DomainEventBus;
+import Service.BusquedaFavoritaSubscriber;
+import Service.ScrimAppService;
+import Infraestructura.RepositorioDeScrims;
+import Controller.ScrimController;
 
 public class Main {
 
@@ -21,16 +26,23 @@ public class Main {
     // --- Repositorios ---
     private final UsuarioRepository repo = new UsuarioRepository();
     private final JuegoRepository juegoRepository = JuegoRepository.getInstance();
-
+    // repo 2
+    private final RepositorioDeScrims scrimRepo = new RepositorioDeScrims();
     // --- Servicios ---
     private final EmailService emailService = new EmailService();
     private final AuthService authService = new AuthService(repo, emailService);
     private final SessionManager sessions = SessionManager.getInstance();
     private final ProfileService profileService = new ProfileService(repo);
 
+    // *** Event Bus y Servicios de Scrims (Integrante 2) ***
+    private final DomainEventBus eventBus = DomainEventBus.getInstance();
+    private final ScrimAppService scrimAppService;
+
     // --- Controladores ---
     private final AuthController authController = new AuthController(sc, authService, sessions);
     private final ProfileController profileController;
+    // 2
+    private final ScrimController scrimController;
 
     private String currentToken = null;
 
@@ -42,7 +54,7 @@ public class Main {
 
     public Main() {
 
-
+        this.scrimAppService = new ScrimAppService(scrimRepo, repo, eventBus);
 
 
         this.profileController = new ProfileController(
@@ -51,6 +63,8 @@ public class Main {
                 profileService,
                 juegoRepository
         );
+        this.scrimController = new ScrimController(sc, sessions, scrimAppService);
+        eventBus.subscribe(new BusquedaFavoritaSubscriber());
     }
 
 
@@ -59,8 +73,12 @@ public class Main {
     public void run() {
         boolean exit = false;
         while (!exit) {
-            System.out.println("\n--- eScrims - Auth & Profile");
-            System.out.println("1) Registrar \n2) Registrar (OAuth simulado)\n3) Verificar email\n4) Login\n5) Editar perfil (debe estar logueado)\n6) Mostrar mi usuario\n7) Logout\n0) Salir");
+            System.out.println("\n--- eScrims - Auth & Profile & Scrims ---"); 
+            System.out.println("1) Registrar \n2) Registrar (OAuth simulado)\n3) Verificar email\n4) Login\n5) Editar perfil\n6) Mostrar mi usuario\n7) Logout");
+            System.out.println("--- Scrims (Integrante 2) ---"); 
+            System.out.println("8) Crear Scrim");
+            System.out.println("9) Buscar Scrims");
+            System.out.println("0) Salir");
             System.out.print("> ");
 
             if (!sc.hasNextLine()) break;
@@ -80,6 +98,8 @@ public class Main {
                     authController.logout(currentToken);
                     currentToken = null;
                     break;
+                case "8": scrimController.crearScrim(currentToken); break; // I2
+                case "9": scrimController.buscarScrims(); break; // I2
                 case "0": exit = true; break;
                 default: System.out.println("Opción inválida"); break;
             }
