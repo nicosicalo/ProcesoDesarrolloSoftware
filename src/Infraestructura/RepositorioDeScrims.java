@@ -31,6 +31,7 @@ public class RepositorioDeScrims {
                 .filter(s -> filtros.regionId() == null || s.getRegionId().equalsIgnoreCase(filtros.regionId()))
                 .filter(s -> s.getRangoMin() >= filtros.rangoMin() && s.getRangoMax() <= filtros.rangoMax())
                 .filter(s -> s.getLatenciaMaxMs() <= filtros.latenciaMaxMs())
+                .filter(s -> filtros.fechaHora() == null || s.getFechaHora().isAfter(filtros.fechaHora()))
                 .collect(Collectors.toList());
     }
 

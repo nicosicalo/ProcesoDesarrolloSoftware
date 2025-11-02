@@ -6,6 +6,8 @@ import Service.FiltrosBusqueda;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class BusquedaFavoritaRepository {
     private final List<BusquedaFavorita> busquedas = new ArrayList<>();
@@ -35,6 +37,11 @@ public class BusquedaFavoritaRepository {
      */
     public List<BusquedaFavorita> findAll() {
         return busquedas;
+    }
+    public List<BusquedaFavorita> findByUsuarioId(UUID usuarioId) {
+        return busquedas.stream()
+                .filter(b -> b.getUsuarioId().equals(usuarioId))
+                .collect(Collectors.toList());
     }
     
     // Método para simular el guardado desde el Controller/Service

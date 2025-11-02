@@ -10,6 +10,8 @@ public record ScrimCreationDTO(
         String regionId,
         int rangoMin,
         int rangoMax,
+        int latenciaMaxMs, 
+        String modalidad,
         int cupos,
         LocalDateTime fechaHora,
         int duracionEstimadaMin

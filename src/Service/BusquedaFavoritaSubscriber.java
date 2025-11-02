@@ -19,7 +19,6 @@ public class BusquedaFavoritaSubscriber implements Subscriber {
     public void onEvent(DomainEvent e) {
         if (e instanceof ScrimCreadoEvent evento) {
             System.out.println("\n[OBSERVER] Scrim creado: " + evento.scrimId() + " (" + evento.juegoId() + ")");
-            
             // 1. Obtener todas las búsquedas favoritas guardadas
             List<BusquedaFavorita> favoritas = busquedaRepo.findAll();
 
@@ -27,7 +26,7 @@ public class BusquedaFavoritaSubscriber implements Subscriber {
             favoritas.stream()
                 .filter(fav -> matches(evento, fav.getFiltros()))
                 .forEach(fav -> {
-                    System.out.println("🔔 ALERTA ENCONTRADA para usuario " + fav.getUsuarioId());
+                    System.out.println("ALERTA ENCONTRADA para usuario " + fav.getUsuarioId());
                     System.out.println("   -> Coincide con su búsqueda: '" + fav.getNombre() + "'");
                     // Aquí iría la lógica de Notificación (Integración con Integrante 5: Abstract Factory/Adapter)
                 });

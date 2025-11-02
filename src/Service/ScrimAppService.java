@@ -4,9 +4,11 @@ import Domain.Events.DomainEventBus;
 import Domain.Events.ScrimCreadoEvent;
 import Domain.ScrimBuilder;
 import Infraestructura.RepositorioDeScrims;
-import Infraestructura.UsuarioRepository; 
+import Infraestructura.UsuarioRepository;
+import Infraestructura.BusquedaFavoritaRepository;
 import Infraestructura.JuegoRepository;
 import Infraestructura.PostulacionRepository;
+import Models.BusquedaFavorita;
 import Models.GameProfile;
 import Models.Postulacion;
 import Models.Scrim;
@@ -24,19 +26,22 @@ public class ScrimAppService {
     private final DomainEventBus eventBus;
     private final PostulacionRepository postulacionRepo;
     private final JuegoRepository juegoRepo;
+    private final BusquedaFavoritaRepository busquedaRepo;
 
     public ScrimAppService(
         RepositorioDeScrims scrimRepo, 
         UsuarioRepository usuarioRepo, 
         DomainEventBus eventBus,
         PostulacionRepository postulacionRepo,
-        JuegoRepository juegoRepo
+        JuegoRepository juegoRepo,
+        BusquedaFavoritaRepository busquedaRepo
     ) {
         this.scrimRepo = scrimRepo;
         this.usuarioRepo = usuarioRepo;
         this.eventBus = eventBus;
         this.postulacionRepo = postulacionRepo; 
         this.juegoRepo = juegoRepo;
+        this.busquedaRepo = busquedaRepo;
     }
 
     public Scrim crearScrim(ScrimCreationDTO dto) {
@@ -45,6 +50,8 @@ public class ScrimAppService {
                 .conJuego(dto.juegoId(), dto.formato())
                 .conRegion(dto.regionId())
                 .conRangos(dto.rangoMin(), dto.rangoMax())
+                .conLatencia(dto.latenciaMaxMs()) 
+                .conModalidad(dto.modalidad())
                 .conCupos(dto.cupos())
                 .conFecha(dto.fechaHora(), dto.duracionEstimadaMin())
                 .build();       
@@ -118,5 +125,12 @@ public class ScrimAppService {
     }
     public List<Postulacion> findApplicantsForScrim(UUID scrimId) {
         return postulacionRepo.findByScrimId(scrimId);
+    }
+    public void guardarBusquedaFavorita(UUID usuarioId, String nombre, FiltrosBusqueda filtros) {
+        BusquedaFavorita fav = new BusquedaFavorita(usuarioId, nombre, filtros);
+        busquedaRepo.save(fav);
+    }
+    public List<Models.BusquedaFavorita> findBusquedasFavoritasByUsuarioId(UUID userId) {
+        return busquedaRepo.findByUsuarioId(userId);
     }
 }

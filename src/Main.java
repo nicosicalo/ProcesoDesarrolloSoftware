@@ -5,11 +5,9 @@ import ScrimsAuth.AuthService;
 import ScrimsAuth.SessionManager;
 import Service.EmailService;
 import Service.ProfileService;
-
 import Infraestructura.JuegoRepository;
 import Infraestructura.PostulacionRepository;
 import java.util.Scanner;
-// *** Nuevas Importaciones para Integrante 2 ***
 import Domain.Events.DomainEventBus;
 import Service.BusquedaFavoritaSubscriber;
 import Service.ScrimAppService;
@@ -59,7 +57,8 @@ public class Main {
             repo, 
             eventBus, 
             postulacionRepo,
-            juegoRepository
+            juegoRepository,
+            busquedaRepo
         );
 
         this.profileController = new ProfileController(

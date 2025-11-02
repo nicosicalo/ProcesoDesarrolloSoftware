@@ -32,6 +32,14 @@ public class ScrimBuilder {
         return this;
     }
     
+    public ScrimBuilder conLatencia(int latenciaMaxMs) {
+        scrim.setLatenciaMaxMs(latenciaMaxMs);
+        return this;
+    }
+    public ScrimBuilder conModalidad(String modalidad) {
+        scrim.setModalidad(modalidad);
+        return this;
+    }
     public ScrimBuilder conCupos(int cupos) {
         if (cupos <= 0) throw new IllegalArgumentException("Cupos deben ser > 0");
         scrim.setCupos(cupos);

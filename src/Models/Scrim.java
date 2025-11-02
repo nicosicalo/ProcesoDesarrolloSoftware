@@ -17,6 +17,7 @@ public class Scrim {
     private String estado; 
     private int cupos;
     private UUID organizadorId;
+    private String modalidad;
 
     // Getters y Setters (Necesarios para el Builder y persistencia)
     public UUID getId() { return id; }
@@ -43,4 +44,6 @@ public class Scrim {
     public void setCupos(int cupos) { this.cupos = cupos; }
     public UUID getOrganizadorId() { return organizadorId; }
     public void setOrganizadorId(UUID organizadorId) { this.organizadorId = organizadorId; }
+    public String getModalidad() { return modalidad; }
+    public void setModalidad(String modalidad) { this.modalidad = modalidad; }
 }
