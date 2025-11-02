@@ -78,6 +78,7 @@ public class Main {
             System.out.println("--- Scrims (Integrante 2) ---"); 
             System.out.println("8) Crear Scrim");
             System.out.println("9) Buscar Scrims");
+            System.out.println("10) Postularse a Scrim");
             System.out.println("0) Salir");
             System.out.print("> ");
 
@@ -100,6 +101,7 @@ public class Main {
                     break;
                 case "8": scrimController.crearScrim(currentToken); break; // I2
                 case "9": scrimController.buscarScrims(); break; // I2
+                case "10": scrimController.postularseAScrim(currentToken); break; // I2
                 case "0": exit = true; break;
                 default: System.out.println("Opción inválida"); break;
             }

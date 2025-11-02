@@ -26,8 +26,10 @@ public class RepositorioDeScrims {
     public List<Scrim> findByFiltros(FiltrosBusqueda filtros) {
         return byId.values().stream()
                 .filter(s -> filtros.juegoId() == null || s.getJuegoId().equalsIgnoreCase(filtros.juegoId()))
+                .filter(s -> filtros.formato() == null || s.getFormato().equalsIgnoreCase(filtros.formato()))
+                .filter(s -> filtros.regionId() == null || s.getRegionId().equalsIgnoreCase(filtros.regionId()))
                 .filter(s -> s.getRangoMin() >= filtros.rangoMin() && s.getRangoMax() <= filtros.rangoMax())
-                .filter(s -> s.getRegionId().equalsIgnoreCase(filtros.regionId()))
+                .filter(s -> s.getLatenciaMaxMs() <= filtros.latenciaMaxMs())
                 .collect(Collectors.toList());
     }
 
