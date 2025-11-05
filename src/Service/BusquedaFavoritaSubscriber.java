@@ -4,47 +4,74 @@ import Domain.Events.DomainEvent;
 import Domain.Events.ScrimCreadoEvent;
 import Domain.Events.Subscriber;
 import Infraestructura.BusquedaFavoritaRepository; 
+import Infraestructura.RepositorioDeScrims;
 import Models.BusquedaFavorita;
 import java.util.List;
-// Subscriber simulado para Alertas (Patrón Observer)
+import java.util.Optional;
+import Models.Scrim;
+
+
 public class BusquedaFavoritaSubscriber implements Subscriber {
     private final BusquedaFavoritaRepository busquedaRepo;
-    public BusquedaFavoritaSubscriber(BusquedaFavoritaRepository busquedaRepo) {
+    private final RepositorioDeScrims scrimRepo;
+
+    public BusquedaFavoritaSubscriber(BusquedaFavoritaRepository busquedaRepo, RepositorioDeScrims scrimRepo) {
         this.busquedaRepo = busquedaRepo;
+        this.scrimRepo = scrimRepo;
     }
-    // Simulación de un repositorio/lista de búsquedas favoritas guardadas
-    // private final List<FiltrosBusqueda> busquedasGuardadas;
+
 
     @Override
     public void onEvent(DomainEvent e) {
         if (e instanceof ScrimCreadoEvent evento) {
             System.out.println("\n[OBSERVER] Scrim creado: " + evento.scrimId() + " (" + evento.juegoId() + ")");
-            // 1. Obtener todas las búsquedas favoritas guardadas
+            
+            Optional<Scrim> scrimOpt = scrimRepo.findById(evento.scrimId()); //
+
+            if (scrimOpt.isEmpty()) {
+                System.out.println("[OBSERVER] Scrim no encontrado en repositorio. Alerta omitida.");
+                return;
+            }
+            
+            Scrim scrim = scrimOpt.get();
+
             List<BusquedaFavorita> favoritas = busquedaRepo.findAll();
 
-            // 2. Iterar sobre ellas y buscar coincidencias (Lógica de Alerta)
             favoritas.stream()
-                .filter(fav -> matches(evento, fav.getFiltros()))
+                .filter(fav -> matches(scrim, fav.getFiltros())) 
                 .forEach(fav -> {
                     System.out.println("ALERTA ENCONTRADA para usuario " + fav.getUsuarioId());
                     System.out.println("   -> Coincide con su búsqueda: '" + fav.getNombre() + "'");
-                    // Aquí iría la lógica de Notificación (Integración con Integrante 5: Abstract Factory/Adapter)
+                    //notificacion
                 });
         }
     }
     
-    /**
-     * Compara un Scrim recién creado (evento) con los criterios de una búsqueda favorita.
-     * Esta es una simplificación de la lógica de búsqueda.
-     */
-    private boolean matches(ScrimCreadoEvent scrim, FiltrosBusqueda filtros) {
-        // Coincidencia de Juego
-        if (filtros.juegoId() != null && !filtros.juegoId().equalsIgnoreCase(scrim.juegoId())) {
+    private boolean matches(Scrim scrim, FiltrosBusqueda filtros) {
+
+        if (filtros.juegoId() != null && !filtros.juegoId().equalsIgnoreCase(scrim.getJuegoId())) {
+            return false;
+        }
+
+        if (filtros.formato() != null && !filtros.formato().equalsIgnoreCase(scrim.getFormato())) {
             return false;
         }
         
-        // **Falta: Lógica de Rango, Formato, Región, Latencia**
-        // Para simular que siempre hay alguna coincidencia por ahora:
+        if (filtros.regionId() != null && !filtros.regionId().equalsIgnoreCase(scrim.getRegionId())) {
+            return false;
+        }
+
+        if (!(scrim.getRangoMin() >= filtros.rangoMin() && scrim.getRangoMax() <= filtros.rangoMax())) {
+            return false;
+        }
+        if (scrim.getLatenciaMaxMs() > filtros.latenciaMaxMs()) {
+            return false;
+        }
+        
+        if (filtros.fechaHora() != null && !scrim.getFechaHora().isAfter(filtros.fechaHora())) {
+            return false;
+        }
+
         return true; 
     }
 }

@@ -7,6 +7,7 @@ import Service.EmailService;
 import Service.ProfileService;
 import Infraestructura.JuegoRepository;
 import Infraestructura.PostulacionRepository;
+import Infraestructura.RepositorioDeScrims;
 import java.util.Scanner;
 import Domain.Events.DomainEventBus;
 import Service.BusquedaFavoritaSubscriber;
@@ -14,6 +15,7 @@ import Service.ScrimAppService;
 import Infraestructura.RepositorioDeScrims;
 import Infraestructura.BusquedaFavoritaRepository;
 import Controller.ScrimController;
+import Models.Scrim;
 
 public class Main {
 
@@ -68,7 +70,7 @@ public class Main {
                 juegoRepository
         );
         this.scrimController = new ScrimController(sc, sessions, scrimAppService, busquedaRepo, juegoRepository);
-        eventBus.subscribe(new BusquedaFavoritaSubscriber(busquedaRepo));
+        eventBus.subscribe(new BusquedaFavoritaSubscriber(busquedaRepo, scrimRepo));
     }
 
 
