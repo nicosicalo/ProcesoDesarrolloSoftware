@@ -35,6 +35,7 @@ public class ScrimContext {
     public void setState(ScrimState newState, ScrimStatus newStatus) {
         this.state = newState;
         this.scrim.setStatus(newStatus);
+        System.out.println("[LIFECYCLE] Scrim " + scrim.getId() + " cambió a estado: " + newStatus.name());
         // notificar
         publishEvent(new ScrimStateChangedEvent(scrim.getId(), newStatus.name()));
     }
@@ -52,11 +53,11 @@ public class ScrimContext {
 
     // --------------------- DELEGACIONES AL STATE ---------------------
 
-    public void postular(Long userId) {
+    public void postular(String userId) {
         state.postular(this, userId);
     }
-     
-    public void confirmar(Long userId) {
+
+    public void confirmar(String userId) {
         state.confirmar(this, userId);
     }
 

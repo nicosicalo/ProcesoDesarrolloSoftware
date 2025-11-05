@@ -35,7 +35,7 @@ public class ScrimLifecycleService {
     public void postular(UUID scrimId, String userId) {
         ScrimContext ctx = scrims.get(scrimId);
         if (ctx == null) throw new IllegalArgumentException("Scrim no existe");
-        ctx.postular(Long.valueOf(userId));
+        ctx.postular(userId);
     }
 
     /**
@@ -44,7 +44,7 @@ public class ScrimLifecycleService {
     public void confirmar(UUID scrimId, String userId) {
         ScrimContext ctx = scrims.get(scrimId);
         if (ctx == null) throw new IllegalArgumentException("Scrim no existe");
-        ctx.confirmar(Long.valueOf(userId));
+        ctx.confirmar(userId);
     }
 
     /**

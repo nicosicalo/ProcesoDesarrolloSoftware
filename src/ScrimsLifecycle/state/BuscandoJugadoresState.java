@@ -15,7 +15,7 @@ import ScrimsLifecycle.context.ScrimContext;
 public class BuscandoJugadoresState implements ScrimState {
 
     @Override
-    public void postular(ScrimContext ctx, Long userId) {
+    public void postular(ScrimContext ctx, String userId) {
         Scrim scrim = ctx.getScrim();
 
         // si ya estaba, no lo agrego de nuevo
@@ -34,7 +34,7 @@ public class BuscandoJugadoresState implements ScrimState {
     }
 
     @Override
-    public void confirmar(ScrimContext ctx, Long userId) {
+    public void confirmar(ScrimContext ctx, String userId) {
         throw new IllegalStateException("No se puede confirmar mientras está BUSCANDO.");
     }
 

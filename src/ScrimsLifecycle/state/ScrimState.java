@@ -14,12 +14,12 @@ public interface ScrimState {
     /**
      * Un jugador quiere entrar al scrim.
      */
-    void postular(ScrimContext ctx, Long userId);
+    void postular(ScrimContext ctx, String userId);
 
     /**
      * Un jugador que ya está en el lobby confirma que va a jugar.
      */
-    void confirmar(ScrimContext ctx, Long userId);
+    void confirmar(ScrimContext ctx, String userId);
 
     /**
      * El organizador / sistema intenta iniciar el scrim.

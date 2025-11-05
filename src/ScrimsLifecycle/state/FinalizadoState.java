@@ -9,12 +9,12 @@ import ScrimsLifecycle.context.ScrimContext;
 public class FinalizadoState implements ScrimState {
 
     @Override
-    public void postular(ScrimContext ctx, Long userId) {
+    public void postular(ScrimContext ctx, String userId) {
         throw new IllegalStateException("Scrim finalizado.");
     }
 
     @Override
-    public void confirmar(ScrimContext ctx, Long userId) { }
+    public void confirmar(ScrimContext ctx, String userId) { }
 
     @Override
     public void iniciar(ScrimContext ctx) { }

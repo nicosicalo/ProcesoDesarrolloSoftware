@@ -27,21 +27,22 @@ public class ScrimAppService {
     private final PostulacionRepository postulacionRepo;
     private final JuegoRepository juegoRepo;
     private final BusquedaFavoritaRepository busquedaRepo;
-
+    private final ScrimLifecycleService lifecycleService;
     public ScrimAppService(
         RepositorioDeScrims scrimRepo, 
         UsuarioRepository usuarioRepo, 
         DomainEventBus eventBus,
         PostulacionRepository postulacionRepo,
         JuegoRepository juegoRepo,
-        BusquedaFavoritaRepository busquedaRepo
-    ) {
+        BusquedaFavoritaRepository busquedaRepo,
+        ScrimLifecycleService lifecycleService) {
         this.scrimRepo = scrimRepo;
         this.usuarioRepo = usuarioRepo;
         this.eventBus = eventBus;
         this.postulacionRepo = postulacionRepo; 
         this.juegoRepo = juegoRepo;
         this.busquedaRepo = busquedaRepo;
+        this.lifecycleService = lifecycleService;
     }
 
     public Scrim crearScrim(ScrimCreationDTO dto) {
@@ -57,7 +58,8 @@ public class ScrimAppService {
                 .conFecha(dto.fechaHora(), dto.duracionEstimadaMin())
                 .build();       
         scrimRepo.save(scrim);        
-        eventBus.publish(new ScrimCreadoEvent(scrim.getId(), scrim.getJuegoId()));        
+        eventBus.publish(new ScrimCreadoEvent(scrim.getId(), scrim.getJuegoId()));
+        lifecycleService.registrarNuevoScrim(scrim);
         return scrim;
     }
 
@@ -110,6 +112,7 @@ public class ScrimAppService {
 
         Postulacion p = new Postulacion(usuarioId, scrimId, rolDeseado);
         postulacionRepo.save(p);
+        lifecycleService.postular(scrimId, usuarioId.toString());
         return Optional.of(p);
     }
     public List<Scrim> findScrimsByIds(Set<UUID> scrimIds) {
