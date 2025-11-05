@@ -2,7 +2,15 @@ import model.*;
 import matching.*;
 import command.*;
 import system.ListaEsperaManager;
+import integration.MatchmakingIntegrationService;
+import integration.UsuarioPersistenceService;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 public class App {
     public static void main(String[] args) throws Exception {
@@ -11,13 +19,22 @@ public class App {
         System.out.println("     Integrante 4 - Patrones: Strategy y Command");
         System.out.println("===============================================================\n");
 
-        // Crear datos simulados
-        List<Jugador> jugadores = crearJugadoresSimulados();
+        // Intentar cargar usuarios desde módulos integrados
+        List<Jugador> jugadores = cargarJugadoresDesdeModulos();
+        
+        // Si no se pudieron cargar, usar datos simulados
+        if (jugadores.isEmpty()) {
+            System.out.println("[INFO] No se encontraron módulos integrados, usando datos simulados...\n");
+            jugadores = crearJugadoresSimulados();
+        }
         
         // Inicializar componentes del sistema
         MatchingContext matchingContext = new MatchingContext();
         CommandInvoker commandInvoker = new CommandInvoker();
         ListaEsperaManager listaEsperaManager = new ListaEsperaManager();
+        
+        // Inicializar servicio de integración
+        MatchmakingIntegrationService integrationService = inicializarIntegracion();
 
         // SIMULACION AUTOMATICA
         System.out.println("\n[INICIO] Iniciando simulacion de emparejamiento...\n");
@@ -73,10 +90,304 @@ public class App {
             simularGestionRoles(partidaFinal, commandInvoker, jugadores);
         }
         
-        // 3. Mostrar estado final con partida 5 vs 5
+        // 3. Integrar con módulos de scrims y ciclo de vida
+        if (partidaFinal != null && integrationService != null) {
+            integrarConModulos(partidaFinal, integrationService);
+        }
+        
+        // 4. Mostrar estado final con partida 5 vs 5
         mostrarEstadoFinal(matchingContext, listaEsperaManager, partidaFinal);
         
         System.out.println("\n[FIN] Simulacion completada exitosamente!");
+    }
+    
+    // Variable estática para mantener una referencia al repositorio compartido
+    private static Object repositorioCompartido = null;
+    
+    /**
+     * Intenta cargar jugadores desde los módulos integrados
+     * IMPORTANTE: Para que los usuarios creados en main sean usados aquí,
+     * ambos módulos deben compartir la misma instancia del repositorio.
+     * Ver INSTRUCCIONES_INTEGRACION.md para más detalles.
+     */
+    private static List<Jugador> cargarJugadoresDesdeModulos() {
+        List<Jugador> jugadores = new ArrayList<>();
+        
+        try {
+            // Intentar cargar UsuarioRepository desde el módulo main
+            Class<?> repoClass = Class.forName("Infraestructura.UsuarioRepository");
+            Constructor<?> repoConstructor = repoClass.getConstructor();
+            Object usuarioRepo = repositorioCompartido != null ? repositorioCompartido : repoConstructor.newInstance();
+            
+            // Guardar referencia para uso futuro
+            if (repositorioCompartido == null) {
+                repositorioCompartido = usuarioRepo;
+            }
+            
+            System.out.println("[INFO] UsuarioRepository encontrado, buscando usuarios...\n");
+            
+            // PRIMERO: Intentar cargar usuarios desde archivo guardado (si fueron creados en main)
+            System.out.println("[INFO] Intentando cargar usuarios guardados desde archivo...");
+            List<String> usuarioIds = UsuarioPersistenceService.cargarUsuarios(usuarioRepo);
+            
+            if (!usuarioIds.isEmpty()) {
+                System.out.println("[OK] ✅ Usuarios cargados desde archivo guardado!");
+                System.out.println("[INFO] Estos usuarios fueron creados previamente en el módulo main");
+                System.out.println("[INFO] Serán usados para el matchmaking\n");
+            } else {
+                // SEGUNDO: Intentar obtener usuarios del repositorio actual (si están en memoria)
+                System.out.println("[INFO] No se encontraron usuarios guardados, buscando en repositorio actual...");
+                usuarioIds = obtenerUsuariosDelRepositorio(usuarioRepo);
+                
+                if (!usuarioIds.isEmpty()) {
+                    System.out.println("[OK] ✅ Usuarios encontrados en el repositorio!");
+                    System.out.println("[INFO] Estos usuarios serán usados para el matchmaking\n");
+                } else {
+                    // TERCERO: Si no hay usuarios, crear algunos de prueba
+                    System.out.println("[INFO] No se encontraron usuarios en el repositorio");
+                    System.out.println("[INFO] Creando usuarios de prueba para esta simulación...\n");
+                    usuarioIds = crearUsuariosDePrueba(usuarioRepo);
+                }
+            }
+            
+            if (!usuarioIds.isEmpty()) {
+                System.out.println("[INFO] Cargando " + usuarioIds.size() + " jugadores desde usuarios...\n");
+                
+                // Usar el servicio de integración para convertir usuarios a jugadores
+                MatchmakingIntegrationService service = new MatchmakingIntegrationService(
+                    usuarioRepo, null, new ConcurrentHashMap<>());
+                
+                jugadores = service.obtenerJugadoresPorIds(usuarioIds, null);
+                
+                if (!jugadores.isEmpty()) {
+                    System.out.println("[OK] " + jugadores.size() + " jugadores cargados desde módulo de usuarios\n");
+                    return jugadores;
+                } else {
+                    System.out.println("[ADVERTENCIA] No se pudieron convertir los usuarios a jugadores");
+                    System.out.println("[INFO] Asegúrate de que los usuarios tengan perfiles de juego configurados");
+                    System.out.println("[INFO] Los perfiles deben tener: rango, roles, y región\n");
+                }
+            }
+            
+        } catch (ClassNotFoundException e) {
+            // Módulo no disponible, continuar con datos simulados
+            System.out.println("[INFO] Módulo de usuarios no encontrado en el classpath");
+            System.out.println("[INFO] Usando datos simulados como fallback\n");
+        } catch (Exception e) {
+            System.err.println("[ERROR] Error al intentar cargar módulos: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return jugadores;
+    }
+    
+    /**
+     * Permite establecer un repositorio compartido desde fuera
+     * Útil para inyectar el repositorio del módulo main
+     */
+    public static void setRepositorioCompartido(Object repo) {
+        repositorioCompartido = repo;
+    }
+    
+    /**
+     * Intenta obtener todos los usuarios del repositorio usando reflexión
+     * Como no hay método findAll(), intentamos acceder al Map interno
+     */
+    private static List<String> obtenerUsuariosDelRepositorio(Object usuarioRepo) {
+        List<String> ids = new ArrayList<>();
+        
+        try {
+            // Intentar acceder al Map byId usando reflexión
+            java.lang.reflect.Field byIdField = usuarioRepo.getClass().getDeclaredField("byId");
+            byIdField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> byId = (Map<String, Object>) byIdField.get(usuarioRepo);
+            
+            if (byId != null && !byId.isEmpty()) {
+                ids.addAll(byId.keySet());
+                System.out.println("[INFO] Encontrados " + ids.size() + " usuarios en el repositorio");
+            }
+        } catch (NoSuchFieldException e) {
+            // Si no se puede acceder al campo, intentar otros métodos
+            System.out.println("[INFO] No se puede acceder directamente al repositorio, intentando otros métodos...");
+        } catch (Exception e) {
+            System.out.println("[INFO] No se pudieron obtener usuarios del repositorio: " + e.getMessage());
+        }
+        
+        return ids;
+    }
+    
+    /**
+     * Crea usuarios de prueba en el repositorio si está vacío
+     * Retorna una lista de IDs de usuarios creados
+     */
+    private static List<String> crearUsuariosDePrueba(Object usuarioRepo) {
+        List<String> ids = new ArrayList<>();
+        
+        try {
+            // Intentar crear usuarios usando UserFactory
+            Class<?> userFactoryClass = Class.forName("Factory.UserFactory");
+            Method createClassicUser = userFactoryClass.getMethod("createClassicUser", 
+                String.class, String.class, String.class);
+            
+            // Crear algunos usuarios de prueba
+            String[][] usuariosPrueba = {
+                {"testuser1", "test1@example.com", "hash1"},
+                {"testuser2", "test2@example.com", "hash2"},
+                {"testuser3", "test3@example.com", "hash3"},
+                {"testuser4", "test4@example.com", "hash4"},
+                {"testuser5", "test5@example.com", "hash5"},
+                {"testuser6", "test6@example.com", "hash6"},
+                {"testuser7", "test7@example.com", "hash7"},
+                {"testuser8", "test8@example.com", "hash8"},
+                {"testuser9", "test9@example.com", "hash9"},
+                {"testuser10", "test10@example.com", "hash10"}
+            };
+            
+            Method saveMethod = usuarioRepo.getClass().getMethod("save", Object.class);
+            
+            for (String[] datos : usuariosPrueba) {
+                Object usuario = createClassicUser.invoke(null, datos[0], datos[1], datos[2]);
+                saveMethod.invoke(usuarioRepo, usuario);
+                
+                // Obtener el ID del usuario
+                Method getId = usuario.getClass().getMethod("getId");
+                String id = (String) getId.invoke(usuario);
+                ids.add(id);
+            }
+            
+            System.out.println("[INFO] " + ids.size() + " usuarios de prueba creados");
+            
+        } catch (Exception e) {
+            // Si no se pueden crear usuarios de prueba, continuar sin ellos
+            System.out.println("[INFO] No se pudieron crear usuarios de prueba: " + e.getMessage());
+        }
+        
+        return ids;
+    }
+    
+    /**
+     * Inicializa el servicio de integración con los módulos
+     */
+    private static MatchmakingIntegrationService inicializarIntegracion() {
+        try {
+            Object usuarioRepo = null;
+            Object scrimRepo = null;
+            Map<UUID, Object> scrimContexts = new ConcurrentHashMap<>();
+            
+            // Intentar cargar UsuarioRepository
+            try {
+                Class<?> repoClass = Class.forName("Infraestructura.UsuarioRepository");
+                Constructor<?> repoConstructor = repoClass.getConstructor();
+                usuarioRepo = repoConstructor.newInstance();
+            } catch (ClassNotFoundException e) {
+                // No disponible
+            }
+            
+            // Intentar cargar RepositorioDeScrims
+            try {
+                Class<?> scrimRepoClass = Class.forName("Infraestructura.RepositorioDeScrims");
+                Constructor<?> scrimRepoConstructor = scrimRepoClass.getConstructor();
+                scrimRepo = scrimRepoConstructor.newInstance();
+            } catch (ClassNotFoundException e) {
+                // No disponible
+            }
+            
+            // Intentar cargar ScrimLifecycleService para obtener contexts
+            try {
+                Class.forName("Service.ScrimLifecycleService");
+                // El servicio mantiene los contexts internamente
+                // Por ahora, dejamos el mapa vacío
+            } catch (ClassNotFoundException e) {
+                // No disponible
+            }
+            
+            if (usuarioRepo != null || scrimRepo != null) {
+                return new MatchmakingIntegrationService(usuarioRepo, scrimRepo, scrimContexts);
+            }
+        } catch (Exception e) {
+            System.err.println("[ERROR] Error al inicializar integración: " + e.getMessage());
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Integra la partida con los módulos de scrims y ciclo de vida
+     */
+    private static void integrarConModulos(Partida partida, MatchmakingIntegrationService integrationService) {
+        System.out.println("\n===============================================================");
+        System.out.println("     INTEGRACION CON MODULOS DE SCRIMS");
+        System.out.println("===============================================================\n");
+        
+        try {
+            System.out.println("[INFO] Partida creada: " + partida.getId());
+            System.out.println("[INFO] Estado inicial: " + partida.getEstado());
+            
+            // Intentar obtener scrims disponibles
+            try {
+                // Intentar obtener una scrim de ejemplo usando reflexión
+                Object scrimRepo = obtenerScrimRepository();
+                if (scrimRepo != null) {
+                    // Intentar obtener todas las scrims (si hay un método findAll)
+                    try {
+                        Method findAll = scrimRepo.getClass().getMethod("findAll");
+                        @SuppressWarnings("unchecked")
+                        List<Object> scrims = (List<Object>) findAll.invoke(scrimRepo);
+                        
+                        if (scrims != null && !scrims.isEmpty()) {
+                            Object primeraScrim = scrims.get(0);
+                            Method getId = primeraScrim.getClass().getMethod("getId");
+                            Object scrimId = getId.invoke(primeraScrim);
+                            
+                            if (scrimId instanceof UUID) {
+                                UUID uuid = (UUID) scrimId;
+                                System.out.println("[INFO] Scrim encontrada: " + uuid);
+                                
+                                // Vincular partida con scrim
+                                integrationService.vincularPartidaConScrim(partida, uuid);
+                                
+                                // Actualizar estado de partida según scrim
+                                integrationService.actualizarEstadoPartidaDesdeScrim(partida, uuid);
+                                
+                                String estadoScrim = integrationService.obtenerEstadoScrim(uuid);
+                                System.out.println("[INFO] Estado de scrim: " + estadoScrim);
+                                System.out.println("[INFO] Estado de partida actualizado: " + partida.getEstado());
+                            }
+                        } else {
+                            System.out.println("[INFO] No hay scrims disponibles en el repositorio");
+                            System.out.println("[INFO] Crea una scrim en el módulo integrante-2 para usar esta funcionalidad");
+                        }
+                    } catch (NoSuchMethodException e) {
+                        System.out.println("[INFO] Repositorio de scrims encontrado, pero no hay método findAll()");
+                        System.out.println("[INFO] Para usar scrims, proporciona el UUID de una scrim creada");
+                    }
+                } else {
+                    System.out.println("[INFO] Módulo de scrims no disponible en el classpath");
+                }
+            } catch (Exception e) {
+                System.out.println("[INFO] No se pudo acceder al módulo de scrims: " + e.getMessage());
+            }
+            
+            System.out.println("[OK] Integración con módulos configurada");
+            
+        } catch (Exception e) {
+            System.err.println("[ERROR] Error en integración: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Intenta obtener el repositorio de scrims usando reflexión
+     */
+    private static Object obtenerScrimRepository() {
+        try {
+            Class<?> scrimRepoClass = Class.forName("Infraestructura.RepositorioDeScrims");
+            Constructor<?> scrimRepoConstructor = scrimRepoClass.getConstructor();
+            return scrimRepoConstructor.newInstance();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static List<Jugador> crearJugadoresSimulados() {
