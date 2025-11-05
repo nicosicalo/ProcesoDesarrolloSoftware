@@ -1,0 +1,9 @@
+/bin/
+/out/
+/target/
+/.idea/
+/.classpath
+.project
+*.class
+*.log
+.DS_Store
