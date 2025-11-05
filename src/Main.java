@@ -12,10 +12,9 @@ import java.util.Scanner;
 import Domain.Events.DomainEventBus;
 import Service.BusquedaFavoritaSubscriber;
 import Service.ScrimAppService;
-import Infraestructura.RepositorioDeScrims;
 import Infraestructura.BusquedaFavoritaRepository;
 import Controller.ScrimController;
-import Models.Scrim;
+
 
 public class Main {
 

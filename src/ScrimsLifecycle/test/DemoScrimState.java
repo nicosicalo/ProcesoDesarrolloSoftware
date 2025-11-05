@@ -1,8 +1,8 @@
 package ScrimsLifecycle.test;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
-import Enums.ScrimStatus;
 import Service.ScrimLifecycleService;
 import ScrimsLifecycle.context.ScrimContext;
 import ScrimsLifecycle.scheduler.ScrimSchedulerService;
@@ -14,23 +14,24 @@ public class DemoScrimState {
         ScrimLifecycleService service = new ScrimLifecycleService();
 
         // crear scrim que empieza en 20 seg
-        Long scrimId = service.crearScrim(2, LocalDateTime.now().plusSeconds(20));
+        UUID scrimId = service.crearScrim(2, LocalDateTime.now().plusSeconds(20));
 
         // engancho un listener para ver cambios
         ScrimContext ctx = service.getContext(scrimId);
-        ctx.addListener(e ->
-            System.out.println("-> cambio de estado: " + e.getNuevoEstado())
-        );
+        ctx.addListener(e -> System.out.println("-> cambio de estado: " + e.getNuevoEstado()));
 
         // arrancar scheduler cada 5 seg
         ScrimSchedulerService scheduler = new ScrimSchedulerService(service);
         scheduler.start(5000);
 
-        // simular jugadores
-        service.postular(scrimId, 10L);
-        service.postular(scrimId, 11L); // debería pasar a LOBBY_ARMADO
-        service.confirmar(scrimId, 10L);
-        service.confirmar(scrimId, 11L); // debería pasar a CONFIRMADO
+        // simular jugadores (UUID)
+        UUID user1 = UUID.randomUUID();
+        UUID user2 = UUID.randomUUID();
+
+        service.postular(scrimId, user1);
+        service.postular(scrimId, user2); // debería pasar a LOBBY_ARMADO
+        service.confirmar(scrimId, user1);
+        service.confirmar(scrimId, user2); // debería pasar a CONFIRMADO
 
         // ahora solo esperamos que el scheduler lo pase a EN_JUEGO
         Thread.sleep(30000); // 30 seg para mirar la consola

@@ -2,6 +2,7 @@ package Service;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.Map;
 
 public record ScrimCreationDTO(
         UUID organizadorId,
@@ -14,5 +15,6 @@ public record ScrimCreationDTO(
         String modalidad,
         int cupos,
         LocalDateTime fechaHora,
-        int duracionEstimadaMin
+        int duracionEstimadaMin,
+        Map<String, Integer> rolesRequeridos
 ) { }
