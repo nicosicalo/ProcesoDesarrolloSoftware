@@ -21,6 +21,7 @@ import Infraestructura.JuegoRepository;
 import Enums.Region;
 import Models.BusquedaFavorita;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 
 public class ScrimController {
     private final Scanner sc;
@@ -66,7 +67,7 @@ public class ScrimController {
             System.out.println("3) Postularme a un Scrim");
             System.out.println("4) Ver mis Scrims activos (Postulado/Creado)");
             System.out.println("5) Ver historial de mis Postulaciones");
-            System.out.println("6) Ver Postulantes a Scrim (Organizador)"); // <--- ¡NUEVA OPCIÓN!
+            System.out.println("6) Ver Postulantes a Scrim (Organizador)"); 
             System.out.println("0) Volver al menú principal");
             System.out.print("> ");
 
@@ -89,7 +90,7 @@ public class ScrimController {
                     break;
                 case "6":
                     verPostulacionesPorScrim(currentToken);
-                    break; // <--- NUEVO CASE
+                    break; 
                 case "0":
                     exit = true;
                     break;
@@ -150,6 +151,52 @@ public class ScrimController {
         int duracion = Integer.parseInt(sc.nextLine());
         System.out.print("Latencia máxima (ms): ");
         int latenciaMaxMs = Integer.parseInt(sc.nextLine());
+
+        Map<String, Integer> rolesRequeridos = new HashMap<>();
+        List<String> rolesDisponibles = obtenerRolesDisponiblesParaJuego(juegoSeleccionado);
+        System.out.println("\n--- Roles Requeridos (Opcional) ---");
+        if (rolesDisponibles.isEmpty()) {
+            System.out.println("No hay roles espec\u00edficos definidos para este juego.");
+        } else {
+            System.out.println("Roles disponibles: " + rolesDisponibles);
+            System.out.print("\u00bfDesea especificar la cantidad de jugadores por Rol? (S/N): ");
+            if (sc.nextLine().trim().toUpperCase().equals("S")) {
+                int totalRoles = 0;
+                int cuposRestantes = cupos;
+                
+                System.out.println("Ingrese la cantidad de cupos para cada rol. Total cupos: " + cupos);
+                
+                for (String rol : rolesDisponibles) {
+                    System.out.print("Cupos para " + rol + " (m\u00e1x " + cuposRestantes + ", 0 para ignorar): ");
+                    try {
+                        String input = sc.nextLine().trim();
+                        if (input.isEmpty()) continue;
+                        int cantidad = Integer.parseInt(input);
+
+                        if (cantidad > cuposRestantes) {
+                            System.out.println("❌ Error: La cantidad excede los cupos restantes. Ignorando rol.");
+                            continue;
+                        }
+                        if (cantidad > 0) {
+                            rolesRequeridos.put(rol, cantidad);
+                            cuposRestantes -= cantidad;
+                            totalRoles += cantidad;
+                        }
+                        if (cuposRestantes == 0) break;
+                    } catch (NumberFormatException e) {
+                        System.out.println("Entrada inv\u00e1lida. Ignorando rol.");
+                    }
+                }
+                
+                if (totalRoles > 0 && totalRoles != cupos) {
+                    System.out.println("\u26a0\ufe0f Advertencia: Solo se han asignado roles a " + totalRoles + " de " + cupos + " cupos totales. Los restantes ser\u00e1n flexibles.");
+                } else if (totalRoles == 0 && cupos > 0) {
+                    System.out.println("No se especific\u00f3 ning\u00fan rol. Todos los cupos ser\u00e1n flexibles.");
+                    rolesRequeridos = new HashMap<>();
+                }
+            }
+        }
+
         try {
             ScrimCreationDTO dto = new ScrimCreationDTO(
                     UUID.fromString(user.getId()),
@@ -162,7 +209,8 @@ public class ScrimController {
                     modalidad,
                     cupos,
                     LocalDateTime.now().plusMinutes(30),
-                    duracion);
+                    duracion,
+                    rolesRequeridos);
             scrimAppService.crearScrim(dto);
             System.out.println("✅ Scrim creado con éxito. Alerta disparada al sistema de notificaciones.");
         } catch (Exception e) {
@@ -235,6 +283,13 @@ public class ScrimController {
             } else {
                 System.out.println("Selección inválida. Intenta de nuevo.");
             }
+        }
+    }
+    private List<String> obtenerRolesDisponiblesParaJuego(Juego juego) {
+        if (juego != null) {
+            return juego.getJuegoFactory().getRolesDelJuego();
+        } else {
+            return List.of();
         }
     }
 

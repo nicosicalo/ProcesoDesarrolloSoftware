@@ -2,6 +2,8 @@ package Models;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
 // Asumimos que la transición de estados la manejará ScrimContext (Integrante 3)
 public class Scrim {
@@ -18,6 +20,7 @@ public class Scrim {
     private int cupos;
     private UUID organizadorId;
     private String modalidad;
+    private Map<String, Integer> rolesRequeridos = new HashMap<>();
 
     // Getters y Setters (Necesarios para el Builder y persistencia)
     public UUID getId() { return id; }
@@ -46,4 +49,6 @@ public class Scrim {
     public void setOrganizadorId(UUID organizadorId) { this.organizadorId = organizadorId; }
     public String getModalidad() { return modalidad; }
     public void setModalidad(String modalidad) { this.modalidad = modalidad; }
+    public Map<String, Integer> getRolesRequeridos() { return rolesRequeridos; }
+    public void setRolesRequeridos(Map<String, Integer> rolesRequeridos) { this.rolesRequeridos = rolesRequeridos; }
 }

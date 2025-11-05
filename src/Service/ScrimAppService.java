@@ -53,6 +53,7 @@ public class ScrimAppService {
                 .conLatencia(dto.latenciaMaxMs()) 
                 .conModalidad(dto.modalidad())
                 .conCupos(dto.cupos())
+                .conRoles(dto.rolesRequeridos())
                 .conFecha(dto.fechaHora(), dto.duracionEstimadaMin())
                 .build();       
         scrimRepo.save(scrim);        
@@ -81,11 +82,9 @@ public class ScrimAppService {
         Scrim scrim = scrimOpt.get();
         Usuario usuario = userOpt.get();
 
-        // 🚀 FIX CRUCIAL: Convertir el ID del Scrim ("1") a la clave del Perfil ("valorant")
         String gameProfileKey = getGameProfileKey(scrim.getJuegoId());
         
-        // 1. Buscar el Perfil usando la clave correcta ("valorant")
-        GameProfile gp = usuario.getPerfil().getPerfilPorJuego(gameProfileKey); 
+        GameProfile gp = usuario.getPerfil().getPerfilPorJuego(gameProfileKey);
         
         // 2. Usar la clave correcta para el mensaje de error (dando mejor feedback al usuario)
         if (gp == null) {

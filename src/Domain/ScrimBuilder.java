@@ -4,7 +4,7 @@ import Models.Scrim;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-
+import java.util.Map;
 // Patrón Builder: Creación segura de Scrim
 public class ScrimBuilder {
     private final Scrim scrim = new Scrim();
@@ -49,6 +49,13 @@ public class ScrimBuilder {
     public ScrimBuilder conFecha(LocalDateTime fechaHora, int duracionMin) {
         scrim.setFechaHora(fechaHora);
         scrim.setDuracionEstimadaMin(duracionMin);
+        return this;
+    }
+
+    public ScrimBuilder conRoles(Map<String, Integer> rolesRequeridos) {
+        if (rolesRequeridos != null) {
+            scrim.setRolesRequeridos(rolesRequeridos);
+        }
         return this;
     }
 

@@ -6,7 +6,6 @@ import Service.FiltrosBusqueda;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class BusquedaFavoritaRepository {
