@@ -1,5 +1,6 @@
 package Domain;
 
+import Enums.ScrimStatus;
 import Models.Scrim;
 
 import java.time.LocalDateTime;
@@ -12,7 +13,7 @@ public class ScrimBuilder {
     public ScrimBuilder(UUID organizadorId) {
         scrim.setOrganizadorId(organizadorId);
         // Estado inicial obligatorio
-        scrim.setEstado("BUSCANDO");
+        scrim.setStatus(ScrimStatus.valueOf("BUSCANDO"));
     }
 
     public ScrimBuilder conJuego(String juegoId, String formato) {

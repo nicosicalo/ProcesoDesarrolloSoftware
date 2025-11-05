@@ -1,11 +1,10 @@
 package Models;
 
+import Enums.ScrimStatus;
+
 import java.time.LocalDateTime;
 
-import java.util.Set;
-import java.util.UUID;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 // Asumimos que la transición de estados la manejará ScrimContext (Integrante 3)
 public class Scrim {

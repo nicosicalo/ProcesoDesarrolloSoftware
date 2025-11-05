@@ -653,7 +653,7 @@ public class ScrimController {
                     ", Cupos: " + s.getCupos() +
                     ", ROL: " + rol +
                     " (" + tipo + ") " +
-                    ", ESTADO: " + s.getEstado());
+                    ", ESTADO: " + s.getStatus());
         });
     }
 }

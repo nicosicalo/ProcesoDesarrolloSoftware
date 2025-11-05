@@ -24,10 +24,10 @@ public class BuscandoJugadoresState implements ScrimState {
         }
 
         // lo agrego al conjunto
-        scrim.getJugadores().add(userId);
+        scrim.getJugadores().add(String.valueOf(userId));
 
         // ¿se llenó?
-        if (scrim.getJugadores().size() >= scrim.getCupoMaximo()) {
+        if (scrim.getJugadores().size() >= scrim.getCupos()) {
             // pasamos a Lobby
             ctx.setState(new LobbyArmadoState(), ScrimStatus.LOBBY_ARMADO);
         }
